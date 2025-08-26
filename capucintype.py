@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
+"""
+capucintype - KISS Monkeytype-like in cli, in Python
+MIT License - Copyright (c) 2025 c4ffein
+"""
 
 import random
 import time
