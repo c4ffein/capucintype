@@ -3,6 +3,7 @@
 """
 capucintype - KISS Monkeytype-like in cli, in Python
 MIT License - Copyright (c) 2025 c4ffein
+Code is dirty but was made with Claude and fixed in minutes
 """
 
 import random
@@ -132,7 +133,6 @@ class CapucinType:
         """Display the text with color coding for correct/incorrect characters"""
         width, height = get_terminal_size()
         self.clear_screen()
-        # Top border (2 rows high, 4 chars wide)
         print(" " * width)
         print(" " * width)
         print(" " * (width // 2 - 20) + "┌──────────────────────────────────────┐")
@@ -141,30 +141,49 @@ class CapucinType:
         print(" " * width)
         print(" " * width)
 
-        display_line = ""
+        display_text = ""
         typed_len = len(self.typed_text)
 
         for i, char in enumerate(self.target_text):
             if i < typed_len:
                 if self.typed_text[i] == char:
                     # Correct character - green text
-                    display_line += f"\033[32m{char}\033[0m"
+                    display_text += f"\033[32m{char}\033[0m"
                 else:
                     # Incorrect character - red text
-                    display_line += f"\033[31m{char}\033[0m"
+                    display_text += f"\033[31m{char}\033[0m"
             elif i == typed_len:
                 # Current character - yellow text
-                display_line += f"\033[33m{char}\033[0m"
+                display_text += f"\033[33m{char}\033[0m"
             else:
                 # Untyped character - normal
-                display_line += f"\033[00m{char}\033[0m"
-
-        print(" " * ((width - 80) // 2) + display_line[80 * 9 * 0:80 * 9 * 1])
-        print(" " * ((width - 80) // 2) + display_line[80 * 9 * 1:80 * 9 * 2])
-        print(" " * ((width - 80) // 2) + display_line[80 * 9 * 2:80 * 9 * 3])
-        print(" " * ((width - 80) // 2) + display_line[80 * 9 * 3:80 * 9 * 4])
-        print(" " * ((width - 80) // 2) + display_line[80 * 9 * 4:80 * 9 * 5])
-        print(" " * width)
+                display_text += f"\033[00m{char}\033[0m"
+        # Split lines, won't handle len(word) < target_column_size since all words are known
+        parts = []  # we want (start, end) tuples to handle spaces more easily
+        target_column_size = max(12, min(80, width - 4))  # no word longer than 12, account for 2 + 2 padding
+        print_char_size = 10
+        current_start, current_end = 0, target_column_size * print_char_size  # current_end is exclusive
+        while current_start < len(display_text):
+            if current_end >= len(display_text):
+                parts.append((current_start, len(display_text)))
+                break
+            if display_text[current_end + 5] == " ":  # next char is space
+                parts.append((current_start, current_end))
+                current_start = current_end + print_char_size
+                current_end = min(
+                    current_end + print_char_size + target_column_size * print_char_size,
+                    len(display_text)
+                )
+                continue
+            if display_text[current_end - print_char_size + 5] == " ":  # actual last char is space
+                parts.append((current_start, current_end - print_char_size))
+                current_start = current_end
+                current_end = min(current_end + target_column_size * print_char_size, len(display_text))
+                continue
+            current_end -= 1
+        for start, end in parts:
+            print((" " * ((width - 80) // 2)) + display_text[start:end])
+        print("\n" * min(0, 5 - len(parts)))  # at least one newline, complete block of text to at least 5 lines
         # Show stats / start message
         if self.start_time > 0:
             elapsed = time.time() - self.start_time
