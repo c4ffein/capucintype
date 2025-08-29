@@ -151,7 +151,7 @@ class CapucinType:
                     display_text += f"\033[32m{char}\033[0m"
                 else:
                     # Incorrect character - red text
-                    display_text += f"\033[31m{char}\033[0m"
+                    display_text += f"\033[31m{char if char != ' ' else "_"}\033[0m"
             elif i == typed_len:
                 # Current character - yellow text
                 display_text += f"\033[33m{char}\033[0m"
@@ -167,7 +167,7 @@ class CapucinType:
             if current_end >= len(display_text):
                 parts.append((current_start, len(display_text)))
                 break
-            if display_text[current_end + 5] == " ":  # next char is space
+            if display_text[current_end + 5] in " _":  # next char is space
                 parts.append((current_start, current_end))
                 current_start = current_end + print_char_size
                 current_end = min(
@@ -175,7 +175,7 @@ class CapucinType:
                     len(display_text)
                 )
                 continue
-            if display_text[current_end - print_char_size + 5] == " ":  # actual last char is space
+            if display_text[current_end - print_char_size + 5] in " _":  # actual last char is space
                 parts.append((current_start, current_end - print_char_size))
                 current_start = current_end
                 current_end = min(current_end + target_column_size * print_char_size, len(display_text))
