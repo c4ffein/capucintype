@@ -100,6 +100,11 @@ KNOWN_WORDS = [
     "path", "liquid", "log", "meant", "quotient", "teeth", "shell", "neck",
 ]
 
+
+class RestartWanted(Exception):
+    pass
+
+
 class CapucinType:
     def __init__(self):
         self.words = KNOWN_WORDS
@@ -197,7 +202,7 @@ class CapucinType:
             stats_line = "Press any key to start the test!"
         print(" " * ((width - 80) // 2) + stats_line)
         print(" " * width)
-        print(" " * ((width - 80) // 2) + "Controls: Ctrl+C to quit, Backspace to delete")
+        print(" " * ((width - 80) // 2) + "Controls: Ctrl+C to quit, Ctrl+R to start new game, Backspace to delete")
         print(" " * width)
 
     def calculate_wpm(self, elapsed_time):
@@ -253,54 +258,60 @@ class CapucinType:
         """Run the typing test"""
         try:
             while True:
-                self.generate_text()
-                self.typed_text = ""
-                self.start_time = 0
-
-                self.display_text()
-
-                while len(self.typed_text) < len(self.target_text):
-                    try:
-                        char = self.get_char()
-
-                        # Handle Ctrl+C
-                        if ord(char) == 3:
-                            raise KeyboardInterrupt
-
-                        # Start timer on first keypress
-                        if self.start_time == 0:
-                            self.start_time = time.time()
-
-                        # Handle backspace
-                        if ord(char) == 127 and self.typed_text:
-                            self.typed_text = self.typed_text[:-1]
-                        # Handle regular characters (space and printable chars)
-                        elif ord(char) >= 32 and ord(char) <= 126:
-                            self.typed_text += char
-
-                        self.display_text()
-
-                        # Check if test duration exceeded
-                        if self.start_time > 0 and time.time() - self.start_time >= self.test_duration:
-                            break
-
-                    except KeyboardInterrupt:
-                        print("\nGoodbye!")
-                        return
-
-                # Show results
-                self.show_results()
-
-                # Wait for restart or quit
                 try:
-                    while True:
-                        restart_char = self.get_char()
-                        if ord(restart_char) == 3:
-                            raise KeyboardInterrupt
-                        if ord(restart_char) == ord("\n"):
-                            break
-                except KeyboardInterrupt:
-                    break
+                    self.generate_text()
+                    self.typed_text = ""
+                    self.start_time = 0
+
+                    self.display_text()
+
+                    while len(self.typed_text) < len(self.target_text):
+                        try:
+                            char = self.get_char()
+
+                            # Handle Ctrl+C
+                            if ord(char) == 3:
+                                raise KeyboardInterrupt
+
+                            if ord(char) == 18:
+                                raise RestartWanted
+
+                            # Start timer on first keypress
+                            if self.start_time == 0:
+                                self.start_time = time.time()
+
+                            # Handle backspace
+                            if ord(char) == 127 and self.typed_text:
+                                self.typed_text = self.typed_text[:-1]
+                            # Handle regular characters (space and printable chars)
+                            elif ord(char) >= 32 and ord(char) <= 126:
+                                self.typed_text += char
+
+                            self.display_text()
+
+                            # Check if test duration exceeded
+                            if self.start_time > 0 and time.time() - self.start_time >= self.test_duration:
+                                break
+
+                        except KeyboardInterrupt:
+                            print("\nGoodbye!")
+                            return
+
+                    # Show results
+                    self.show_results()
+
+                    # Wait for restart or quit
+                    try:
+                        while True:
+                            restart_char = self.get_char()
+                            if ord(restart_char) == 3:
+                                raise KeyboardInterrupt
+                            if ord(restart_char) in [ord("\n"), 18]:
+                                break
+                    except KeyboardInterrupt:
+                        break
+                except RestartWanted:
+                    pass
 
         except KeyboardInterrupt:
             print("\nGoodbye!")
