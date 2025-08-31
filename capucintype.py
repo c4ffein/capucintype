@@ -209,7 +209,7 @@ class CapucinType:
         """Calculate words per minute"""
         if elapsed_time == 0:
             return 0
-        words_typed = len([c for c in self.typed_text if c == ' ']) + (1 if self.typed_text else 0)
+        words_typed = len([c for c in self.typed_text if c == " "]) + (1 if self.typed_text else 0)
         return (words_typed / elapsed_time) * 60
 
     def calculate_accuracy(self):
@@ -317,12 +317,15 @@ class CapucinType:
             print("\nGoodbye!")
 
 def main():
-    print("Welcome to CapucinType Terminal!")
-    print("Starting typing test...")
-    time.sleep(1)
-
+    # Hide cursor
+    sys.stdout.write("\033[?25l")
+    sys.stdout.flush()
+    # Start game
     capucin_type = CapucinType()
     capucin_type.run_test()
+    # Show cursor again when done
+    sys.stdout.write("\033[?25h")
+    sys.stdout.flush()
 
 if __name__ == "__main__":
     main()
